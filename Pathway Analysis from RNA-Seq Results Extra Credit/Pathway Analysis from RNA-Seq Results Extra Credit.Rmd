@@ -1,0 +1,85 @@
+---
+title: "Pathway Analysis from RNA-Seq Results Extra Credit"
+author: "Tom Quach (A15549142)"
+date: "11/20/2021"
+output: html_document
+---
+
+```{r}
+library(DESeq2)
+```
+
+```{r}
+metaFile <- "GSE37704_metadata.csv"
+countFile <- "GSE37704_featurecounts.csv"
+```
+
+```{r}
+colData = read.csv(metaFile, row.names=1)
+head(colData)
+```
+```{r}
+countData = read.csv(countFile, row.names=1)
+head(countData)
+```
+
+> Q. Complete the code below to remove the troublesome first column from countData
+
+```{r}
+countData <- as.matrix(countData[,-1])
+head(countData)
+```
+
+```{r}
+rowSums(countData == 0)
+```
+
+> Q2 Complete the code below to filter countData to exclude genes (i.e. rows) where we have 0 read count across all samples (i.e. columns).
+
+```{r}
+zero.vals <- which(countData[,1:6] == 0, arr.ind = TRUE)
+head(zero.vals)
+```
+
+```{r}
+to.rm <- unique(zero.vals[,1])
+sort(to.rm)
+```
+
+```{r}
+countData <- countData[-to.rm,]
+head(countData)
+```
+
+```{r}
+dds = DESeqDataSetFromMatrix(countData=countData,
+                             colData=colData,
+                             design=~condition)
+dds = DESeq(dds)
+```
+
+```{r}
+dds
+```
+
+```{r}
+res = results(dds, contrast=c("condition", "hoxa1_kd", "control_sirna"))
+```
+
+Q. Call the summary() function on your results to get a sense of how many genes are up or down-regulated at the default 0.1 p-value cutoff.
+
+```{r}
+summary(res)
+```
+
+```{r}
+plot( res$log2FoldChange, -log(res$padj) )
+```
+
+
+
+
+
+
+
+
