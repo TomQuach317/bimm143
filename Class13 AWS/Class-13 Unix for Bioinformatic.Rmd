@@ -1,0 +1,41 @@
+---
+title: 'Class 13: UNIX For Bioinformatics'
+author: "Tom Quach (A15549142)"
+date: "11/13/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Storing our blast result into b
+
+```{r}
+b <- read.delim("mm-second.x.zebrafish.tsv")
+```
+
+Setting the column names for the file
+
+```{r}
+colnames(b) <- c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
+```
+
+Making a histogram of the $bitscore values 
+
+```{r}
+hist(b$bitscore, breaks = 30)
+```
+
+```{r}
+## Asuming your blast results are stored in an object called 'b'
+plot(b$pident  * (b$qend - b$qstart), b$bitscore)
+```
+
+```{r}
+library(ggplot2)
+ggplot(b, aes(pident, bitscore)) + geom_point(alpha=0.1) 
+```
+
+```{r}
+ggplot(b, aes((b$pident * (b$qend - b$qstart)), bitscore)) + geom_point(alpha=0.1) + geom_smooth()
+```
+
