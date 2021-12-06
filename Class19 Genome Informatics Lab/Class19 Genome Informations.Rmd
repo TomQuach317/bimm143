@@ -1,0 +1,29 @@
+---
+title: 'Class19: Genome-Informatics'
+author: "Tom Quach (A15549142)"
+date: "12/5/2021"
+output: pdf_document
+---
+
+# Section 1. Proportion og G/G in a population
+
+Downloaded a CSV file from Enbemsble. Here we read this CSV file
+
+```{r}
+mxl <- read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+head(mxl)
+```
+
+```{r}
+table(mxl$Genotype..forward.strand.)
+```
+
+```{r}
+table(mxl$Genotype..forward.strand.) / nrow(mxl)
+```
+
+
+
+
+
+

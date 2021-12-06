@@ -1,0 +1,54 @@
+---
+title: 'Class 19: Boxplot'
+author: "Tom Quach (A15549142)"
+date: "12/5/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Section 4 Population Scale Analysis
+
+> Q13: Read this file into R and determine the sample size for each genotype and their corresponding median expression levels for each of these genotypes.
+
+**Reading our file**
+
+```{r}
+expr <- read.table("Expression genotype results.txt")
+head(expr)
+```
+
+```{r}
+nrow(expr)
+```
+
+**Determining the sample size for each genotype**
+
+```{r}
+table(expr$geno)
+```
+
+**Finding the median expression levels for each of these genotypes**
+
+```{r}
+summary(expr)
+```
+
+
+```{r}
+median(expr$exp)
+```
+> Q14: Generate a boxplot with a box per genotype, what could you infer from the relative expression value between A/A and G/G displayed in this plot? Does the SNP effect the expression of ORMDL3?
+
+```{r}
+library(ggplot2)
+```
+
+
+##Lets make the boxplot
+
+```{r}
+ggplot(expr) + aes(x=geno, y=exp, fill=geno) +geom_boxplot(notch=TRUE)
+```
+
+From the boxplot, we can see that the expression value between AA and GG are pretty different, with G/G expression being lower compared to A/A expression. It also looks like having a G/G in this location is definitely associated with the expression of ORMDL3. In sums, the SNP does effect the expression of ORMDL3. 
