@@ -1,0 +1,225 @@
+---
+title: 'Class12: Structural Bioinformatics II'
+author: "Tom Quach (A15549142)"
+date: "11/4/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Comparative analysis of protein structures
+
+\#\#Using Bio3D
+
+I need to load the library
+
+```{r}
+library(bio3d)
+
+pdb <- read.pdb("1hsg")
+pdb
+```
+
+> Q7: How many amino acid residues are there in this pdb object?
+
+There are 198 amino acid residues
+
+> Q8: Name one of the two non-protein residues?
+
+HOH
+
+> Q9: How many protein chains are in this structure?
+
+There are 2 chains
+
+```{r}
+aa123(pdbseq(pdb))
+```
+
+Plot of B-factor
+
+```{r}
+plot.bio3d(pdb$atom$b, sse=pdb)
+```
+
+The ATOM records
+
+```{r}
+head(pdb$atom)
+```
+
+> Q10. Which of the packages above is found only on BioConductor and not CRAN?
+
+msa
+
+> Q11. Which of the above packages is not found on BioConductor or CRAN?
+
+bio3d-view
+
+> Q12. True or False? Functions from the devtools package can be used to install packages from GitHub and BitBucket?
+
+True
+
+Using bio3d package
+
+```{r}
+library(bio3d)
+
+pbd <- read.pdb("1hel")
+pbd
+```
+
+> Q13. How many amino acids are in this sequence, i.e. how long is this sequence?
+
+214
+
+Let's use a bioinformatics method called NMA (Normal Mode Analysis) to predict the dynamics (flexibility) of this enzyme.
+
+```{r}
+modes <- nma(pbd)
+plot(modes)
+```
+
+Make a "movie" of its predicted motion. We often call this a "trajectory." Making a file that can be read in VMD.
+
+```{r}
+mktrj(modes, file = "nma.pdb")
+```
+
+1hel[ng.png, not knitting into PDF enough though it is .png file
+
+\#Analysis of ADK
+
+```{r}
+aa <- get.seq("1ake_A")
+
+aa
+```
+
+```{r}
+#Run BLAST from R
+blast <- blast.pdb(aa)
+```
+
+```{r}
+hits <- plot(blast)
+```
+
+```{r}
+hits$pdb.id
+```
+
+```{r}
+# Download releated PDB files
+files <- get.pdb(hits$pdb.id, path="pdbs", split=TRUE, gzip=TRUE)
+```
+
+Multiple structure alignment
+
+```{r}
+# Align releated PDBs
+pdbs <- pdbaln(files, fit = TRUE)#, exefile="msa")
+```
+
+```{r}
+# Vector containing PDB codes for figure axis
+ids <- basename.pdb(pdbs$id)
+
+# Draw schematic alignment
+plot(pdbs, labels=ids)
+```
+
+# PCA
+
+We will use the bio3d pca() function which is deesigned for protein structure data .
+
+```{r}
+# Perform PCA
+pc.xray <- pca(pdbs)
+plot(pc.xray)
+```
+
+Make a trajectory visualization of the motion captured by the first Principal Componet
+
+```{r}
+# Visualize first principal component
+pc1 <- mktrj(pc.xray, pc=1, file="pc_1.pdb")
+```
+
+pc_1p.png not knitting into PDF enough though it is .png file
+
+```{r}
+# Calculate RMSD
+rd <- rmsd(pdbs)
+
+# Structure-based clustering
+hc.rd <- hclust(dist(rd))
+grps.rd <- cutree(hc.rd, k=3)
+
+plot(pc.xray, 1:2, col="grey50", bg=grps.rd, pch=21, cex=1)
+```
+
+```{r}
+#view.xyz(pc1)
+```
+
+```{r}
+#Plotting results with ggplot2
+library(ggplot2)
+library(ggrepel)
+
+df <- data.frame(PC1=pc.xray$z[,1], 
+                 PC2=pc.xray$z[,2], 
+                 col=as.factor(grps.rd),
+                 ids=ids)
+
+p <- ggplot(df) + 
+  aes(PC1, PC2, col=col, label=ids) +
+  geom_point(size=2) +
+  geom_text_repel(max.overlaps = 20) +
+  theme(legend.position = "none")
+p
+```
+
+```{r}
+# Calculate RMSD
+rd <- rmsd(pdbs)
+
+# Structure-based clustering
+hc.rd <- hclust(dist(rd))
+grps.rd <- cutree(hc.rd, k=3)
+
+plot(pc.xray, 1:2, col="grey50", bg=grps.rd, pch=21, cex=1)
+```
+
+```{r}
+#Plotting results with ggplot2
+library(ggplot2)
+library(ggrepel)
+
+df <- data.frame(PC1=pc.xray$z[,1], 
+                 PC2=pc.xray$z[,2], 
+                 col=as.factor(grps.rd),
+                 ids=ids)
+
+p <- ggplot(df) + 
+  aes(PC1, PC2, col=col, label=ids) +
+  geom_point(size=2) +
+  geom_text_repel(max.overlaps = 20) +
+  theme(legend.position = "none")
+
+p
+```
+
+```{r}
+# NMA of all structures
+modes <- nma(pdbs)
+```
+
+```{r}
+plot(modes, pdbs, col=grps.rd)
+```
+
+> Q14. What do you note about this plot? Are the black and colored lines similar or different? Where do you think they differ most and why?
+
+I note that there is a big fluctuation difference between the colored lines and the black reference line in a couple regions within the above plot. This difference between the the black and colored lines occur around in the residue 30-70 and again at around 130 to 150. I think this difference in fluctuation indicate a potential binding site. The potential reason why the colored lines have a rise in fluctuation in those two regions of the plot may be because of an activation of a binding site as a result of a ligand binding. The reference did not have a change in fluctuation may be because it does not activate due to a binding of a ligand. Nevertheless, this is just a prediction meaning that it is not concrete evidence that it is a binding site. However, now we have a specific target to research to confirm our findings of a potential binding site.
